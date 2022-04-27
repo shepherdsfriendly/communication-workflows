@@ -35,3 +35,4 @@ stages:
         containerRegistry: ${{variables.docker_registry_service_connection_name}}
         repository: '$(imagename)'
         command: 'push'
+        tags: '$(tag)'
