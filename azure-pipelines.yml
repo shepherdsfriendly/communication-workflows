@@ -10,10 +10,10 @@ resources:
 
 variables:
   # Container registry service connection established during pipeline creation
-  dockerRegistryServiceConnection: 'aab2b4ad-f269-4bdb-ba17-4211e9bfea8f'
   imageRepository: 'daprcommunicationworkflows'
   containerRegistry: 'sf1devcoreacr.azurecr.io'
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
+  imageName: 'dapr-communication-workflows'
   tag: '$(Build.BuildId)'
 
   # Agent VM image name
@@ -23,17 +23,17 @@ stages:
 - stage: Build
   displayName: Build and push stage
   jobs:
-  - job: Build
-    displayName: Build
-    pool:
-      vmImage: $(vmImageName)
+  - job: CreateImage
     steps:
     - task: Docker@2
-      displayName: Build and push an image to container registry
       inputs:
-        command: buildAndPush
-        repository: $(imageRepository)
-        dockerfile: $(dockerfilePath)
-        containerRegistry: $(dockerRegistryServiceConnection)
-        tags: |
-          $(tag)
+        containerRegistry: ${{variables.docker_registry_service_connection_name}}
+        command: 'build'
+        repository: '$(imageName)'
+        Dockerfile: '/Dockerfile'
+        tags: "1.0.0"
+    - task: Docker@2
+      inputs:
+        containerRegistry: ${{variables.docker_registry_service_connection_name}}
+        repository: '$(imagename)'
+        command: 'push'
