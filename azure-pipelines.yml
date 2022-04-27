@@ -13,7 +13,7 @@ variables:
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
   imageName: 'dapr-communication-workflows'
   tag: '$(Build.BuildId)'
-  docker_registry_service_connection_name: $(docker-registry-service-connection-name)
+  docker_registry_service_connection_name: $(docker_registry_service_connection_name)
 
   # Agent VM image name
   vmImageName: 'ubuntu-latest'
