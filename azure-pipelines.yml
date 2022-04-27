@@ -10,8 +10,6 @@ resources:
 
 variables:
   # Container registry service connection established during pipeline creation
-  imageRepository: 'daprcommunicationworkflows'
-  containerRegistry: 'sf1devcoreacr.azurecr.io'
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
   imageName: 'dapr-communication-workflows'
   tag: '$(Build.BuildId)'
@@ -30,8 +28,8 @@ stages:
         containerRegistry: ${{variables.docker_registry_service_connection_name}}
         command: 'build'
         repository: '$(imageName)'
-        Dockerfile: '/Dockerfile'
-        tags: "1.0.0"
+        Dockerfile: '$(dockerfilePath)'
+        tags: '$(tag)'
     - task: Docker@2
       inputs:
         containerRegistry: ${{variables.docker_registry_service_connection_name}}
