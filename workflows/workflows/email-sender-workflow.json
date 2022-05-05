@@ -1,0 +1,216 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Initialize_variable": {
+                "type": "InitializeVariable",
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "id",
+                            "type": "string",
+                            "value": "@{guid()}"
+                        }
+                    ]
+                },
+                "runAfter": {}
+            },
+            "Initialize_variable_2": {
+                "type": "InitializeVariable",
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "eventbody",
+                            "type": "object",
+                            "value": {
+                                "data": "@triggerBody()",
+                                "dataschema": "#",
+                                "id": "@{variables('id')}",
+                                "source": "EmailSender",
+                                "specversion": "1.0",
+                                "subject": "EmailRequest",
+                                "type": "EmailRequest"
+                            }
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Initialize_variable": [
+                        "Succeeded"
+                    ]
+                }
+            },
+            "HTTP": {
+                "type": "Http",
+                "inputs": {
+                    "method": "POST",
+                    "uri": "http://localhost:3500/v1.0/publish/emailsender-pubsub/email-sender-request",
+                    "body": "@variables('eventbody')"
+                },
+                "runAfter": {
+                    "Initialize_variable_2": [
+                        "Succeeded"
+                    ]
+                }
+            },
+            "Response": {
+                "type": "Response",
+                "kind": "Http",
+                "inputs": {
+                    "statusCode": 200,
+                    "body": {
+                        "id": "@{variables('id')}"
+                    }
+                },
+                "runAfter": {
+                    "HTTP": [
+                        "Succeeded"
+                    ]
+                }
+            }
+        },
+        "triggers": {
+            "manual": {
+                "type": "Request",
+                "kind": "Http",
+                "inputs": {
+                    "schema": {
+                        "properties": {
+                            "attachments": {
+                                "items": {
+                                    "properties": {
+                                        "content": {
+                                            "type": "string"
+                                        },
+                                        "contentId": {
+                                            "type": "string"
+                                        },
+                                        "disposition": {
+                                            "type": "string"
+                                        },
+                                        "filename": {
+                                            "type": "string"
+                                        },
+                                        "type": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "content",
+                                        "type",
+                                        "filename",
+                                        "disposition",
+                                        "contentId"
+                                    ],
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            },
+                            "batchId": {
+                                "type": "string"
+                            },
+                            "bcc": {
+                                "items": {
+                                    "properties": {
+                                        "email": {
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "name",
+                                        "email"
+                                    ],
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            },
+                            "cc": {
+                                "items": {
+                                    "properties": {
+                                        "email": {
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "name",
+                                        "email"
+                                    ],
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            },
+                            "from": {
+                                "properties": {
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "htmlContent": {
+                                "type": "string"
+                            },
+                            "plainTextContent": {
+                                "type": "string"
+                            },
+                            "replyTo": {
+                                "properties": {
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "subject": {
+                                "type": "string"
+                            },
+                            "templateData": {
+                                "type": "object"
+                            },
+                            "templateId": {
+                                "type": "string"
+                            },
+                            "templateName": {
+                                "type": "string"
+                            },
+                            "to": {
+                                "items": {
+                                    "properties": {
+                                        "email": {
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "name",
+                                        "email"
+                                    ],
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            }
+                        },
+                        "type": "object"
+                    }
+                }
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {}
+    },
+    "kind": "Stateful"
+}

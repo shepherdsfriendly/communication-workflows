@@ -1,0 +1,242 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Create_a_JSON_request_for_the_email_sender_service": {
+                "type": "InitializeVariable",
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "external-template-request",
+                            "type": "object",
+                            "value": {
+                                "mailMessage": {
+                                    "htmlContent": "@{variables('rendered-content')}",
+                                    "subject": "@{triggerBody()?['email']?['subject']}",
+                                    "templateData": "@if(equals(triggerBody()?['templateSource'],'internal'), null, triggerBody()?['templateData'])",
+                                    "templateId": "@if(empty(triggerBody()?['templateIdentifier']),null,triggerBody()?['templateIdentifier'])",
+                                    "templateName": "@{triggerBody()?['templateName']}",
+                                    "to": "@triggerBody()?['email']?['to']"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "If_the_http_request_is_for_an_internal_rendering_forward_the_request": [
+                        "Succeeded"
+                    ]
+                }
+            },
+            "Create_a_JSON_request_for_the_rendering_service": {
+                "type": "InitializeVariable",
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "internal-template-request",
+                            "type": "string",
+                            "value": "{\n  \"reference\": \"@{triggerBody()?['templateName']}\",\n  \"version\": 0,\n  \"data\": @{triggerBody()?['templateData']} \n}"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Create_an_Identifier_for_The_Service_Bus_Message": [
+                        "Succeeded"
+                    ]
+                }
+            },
+            "Create_an_Identifier_for_The_Service_Bus_Message": {
+                "type": "InitializeVariable",
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "sbus-session-identifier",
+                            "type": "string",
+                            "value": "@{guid()}"
+                        }
+                    ]
+                },
+                "runAfter": {}
+            },
+            "Define_a_String_to_populate_with_the_rendered_content": {
+                "type": "InitializeVariable",
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "rendered-content",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Create_a_JSON_request_for_the_rendering_service": [
+                        "Succeeded"
+                    ]
+                }
+            },
+            "If_the_http_request_is_for_an_internal_rendering_forward_the_request": {
+                "type": "If",
+                "expression": {
+                    "and": [
+                        {
+                            "equals": [
+                                "@triggerBody()?['templateSource']",
+                                "internal"
+                            ]
+                        }
+                    ]
+                },
+                "actions": {
+                    "Make_a_Http_request_to_the_templating_service": {
+                        "type": "Http",
+                        "inputs": {
+                            "method": "POST",
+                            "uri": "http://localhost:3500/v1.0/invoke/templating/method/document/render",
+                            "headers": {
+                                "Content-Type": "application/json"
+                            },
+                            "body": "@variables('internal-template-request')"
+                        },
+                        "runAfter": {}
+                    },
+                    "Parse_the_response_from_the_templating_service": {
+                        "type": "ParseJson",
+                        "inputs": {
+                            "content": "@body('Make_a_Http_request_to_the_templating_service')",
+                            "schema": {
+                                "properties": {
+                                    "content": {
+                                        "type": "string"
+                                    },
+                                    "identifier": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        },
+                        "runAfter": {
+                            "Make_a_Http_request_to_the_templating_service": [
+                                "Succeeded"
+                            ]
+                        }
+                    },
+                    "Set_the_rendered_content_variable_from_the_response": {
+                        "type": "SetVariable",
+                        "inputs": {
+                            "name": "rendered-content",
+                            "value": "@body('Parse_the_response_from_the_templating_service')?['content']"
+                        },
+                        "runAfter": {
+                            "Parse_the_response_from_the_templating_service": [
+                                "Succeeded"
+                            ]
+                        }
+                    }
+                },
+                "runAfter": {
+                    "Define_a_String_to_populate_with_the_rendered_content": [
+                        "Succeeded"
+                    ]
+                }
+            },
+            "Make_a_http_request_to_the_send_email_Logic_App": {
+                "type": "Http",
+                "inputs": {
+                    "method": "POST",
+                    "uri": "http://localhost:3500/v1.0/invoke/communication-workflows/method/email-sender-workflow",
+                    "headers": {
+                        "Content-Type": "application/json",
+                        "Accept": "*/*"
+                    },
+                    "body": "@variables('external-template-request')"
+                },
+                "runAfter": {
+                    "Create_a_JSON_request_for_the_email_sender_service": [
+                        "Succeeded"
+                    ]
+                }
+            },
+            "Response": {
+                "type": "Response",
+                "kind": "http",
+                "inputs": {
+                    "statusCode": 200,
+                    "body": "@body('Make_a_http_request_to_the_send_email_Logic_App')"
+                },
+                "runAfter": {
+                    "Make_a_http_request_to_the_send_email_Logic_App": [
+                        "Succeeded"
+                    ]
+                }
+            }
+        },
+        "triggers": {
+            "manual": {
+                "type": "Request",
+                "kind": "Http",
+                "inputs": {
+                    "schema": {
+                        "properties": {
+                            "email": {
+                                "properties": {
+                                    "subject": {
+                                        "type": "string"
+                                    },
+                                    "to": {
+                                        "items": {
+                                            "properties": {
+                                                "email": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "email"
+                                            ],
+                                            "type": "object"
+                                        },
+                                        "type": "array"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "templateData": {
+                                "properties": {
+                                    "Firstname": {
+                                        "type": "string"
+                                    },
+                                    "PolicyNo": {
+                                        "type": "string"
+                                    },
+                                    "PolicyValue": {
+                                        "type": "integer"
+                                    },
+                                    "Surname": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "templateIdentifier": {
+                                "type": "string"
+                            },
+                            "templateName": {
+                                "type": "string"
+                            },
+                            "templateSource": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    }
+                }
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {}
+    },
+    "kind": "Stateful"
+}
