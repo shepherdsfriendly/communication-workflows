@@ -1,0 +1,12 @@
+mode: Mainline
+tag-prefix: communication-workflows-dapr/v
+major-version-bump-message: '\+semver-communication-workflows-dapr:\s?(breaking|major)'
+minor-version-bump-message: '\+semver-communication-workflows-dapr:\s?(feature|minor)'
+patch-version-bump-message: '\+semver-communication-workflows-dapr:\s?(fix|patch)'
+branches:
+  pull-request:
+    mode: ContinuousDeployment
+    tag: beta
+ignore:
+  sha: []
+merge-message-formats: {}
