@@ -11,7 +11,7 @@ resources:
 variables:
   # Container registry service connection established during pipeline creation
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
-  imageName: 'dapr-communication-workflows'
+  imageName: 'workflows-communication-dapr'
   tag: '$(Build.BuildId)'
   docker_registry_service_connection_name: $(docker-registry-service-connection-name)
 
@@ -24,16 +24,66 @@ stages:
   jobs:
   - job: CreateImage
     steps:
+   # Install and setup the tooling (Unclear if we need this if installed)
+    - task: gitversion/setup@0
+      displayName: Install GitVersion
+      inputs:
+        versionSpec: '5.x'
+
+    # Setup the git versioning information by using git version
+    - task: gitversion/execute@0
+      displayName: Determine Version
+      inputs:
+        useConfigFile: true
+        configFilePath: './gitversion.yml'
+
+    # Output our versioning options for inspection
+    - task: CmdLine@2
+      displayName: Show GitVersion Outputs
+      inputs:
+        script: |
+          echo "Major: $(GitVersion.Major)"
+          echo "Minor: $(GitVersion.Minor)"
+          echo "Patch: $(GitVersion.Patch)"
+          echo "PreReleaseTag: $(GitVersion.PreReleaseTag)"
+          echo "PreReleaseTagWithDash: $(GitVersion.PreReleaseTagWithDash)"
+          echo "PreReleaseLabel: $(GitVersion.PreReleaseLabel)"
+          echo "PreReleaseNumber: $(GitVersion.PreReleaseNumber)"
+          echo "WeightedPreReleaseNumber: $(GitVersion.WeightedPreReleaseNumber)"
+          echo "BuildMetaData: $(GitVersion.BuildMetaData)"
+          echo "BuildMetaDataPadded: $(GitVersion.BuildMetaDataPadded)"
+          echo "FullBuildMetaData: $(GitVersion.FullBuildMetaData)"
+          echo "MajorMinorPatch: $(GitVersion.MajorMinorPatch)"
+          echo "SemVer: $(GitVersion.SemVer)"
+          echo "LegacySemVer: $(GitVersion.LegacySemVer)"
+          echo "LegacySemVerPadded: $(GitVersion.LegacySemVerPadded)"
+          echo "AssemblySemVer: $(GitVersion.AssemblySemVer)"
+          echo "AssemblySemFileVer: $(GitVersion.AssemblySemFileVer)"
+          echo "FullSemVer: $(GitVersion.FullSemVer)"
+          echo "InformationalVersion: $(GitVersion.InformationalVersion)"
+          echo "BranchName: $(GitVersion.BranchName)"
+          echo "EscapedBranchName: $(GitVersion.EscapedBranchName)"
+          echo "Sha: $(GitVersion.Sha)"
+          echo "ShortSha: $(GitVersion.ShortSha)"
+          echo "NuGetVersionV2: $(GitVersion.NuGetVersionV2)"
+          echo "NuGetVersion: $(GitVersion.NuGetVersion)"
+          echo "NuGetPreReleaseTagV2: $(GitVersion.NuGetPreReleaseTagV2)"
+          echo "NuGetPreReleaseTag: $(GitVersion.NuGetPreReleaseTag)"
+          echo "VersionSourceSha: $(GitVersion.VersionSourceSha)"
+          echo "CommitsSinceVersionSource: $(GitVersion.CommitsSinceVersionSource)"
+          echo "CommitsSinceVersionSourcePadded: $(GitVersion.CommitsSinceVersionSourcePadded)"
+          echo "UncommittedChanges: $(GitVersion.UncommittedChanges)"
+          echo "CommitDate: $(GitVersion.CommitDate)"    
     - task: Docker@2
       inputs:
         containerRegistry: ${{variables.docker_registry_service_connection_name}}
         command: 'build'
         repository: '$(imageName)'
         Dockerfile: '$(dockerfilePath)'
-        tags: '$(tag)'
+        tags: $(GitVersion.FullSemVer)
     - task: Docker@2
       inputs:
         containerRegistry: ${{variables.docker_registry_service_connection_name}}
         repository: '$(imagename)'
         command: 'push'
-        tags: '$(tag)'
+        tags: $(GitVersion.FullSemVer)
