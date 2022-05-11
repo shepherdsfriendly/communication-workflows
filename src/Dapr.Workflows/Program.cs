@@ -69,7 +69,7 @@ namespace Dapr.Workflows
             var server = new Server
             {
                 Services = { AppCallback.BindService(new DaprWorkflowExecutor(workflows, workflowEngine)) },
-                Ports = { new ServerPort("localhost", ServerPort, ServerCredentials.Insecure) }
+                Ports = { new ServerPort("0.0.0.0", ServerPort, ServerCredentials.Insecure) }
             };
 
             Task.Run(() =>
