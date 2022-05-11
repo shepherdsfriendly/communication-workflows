@@ -87,3 +87,9 @@ stages:
         repository: '$(imagename)'
         command: 'push'
         tags: $(GitVersion.FullSemVer)
+    - task: Docker@2
+      inputs:
+        containerRegistry: ${{variables.docker_registry_service_connection_name}}
+        repository: '$(imagename)'
+        command: 'push'
+        tags: 
