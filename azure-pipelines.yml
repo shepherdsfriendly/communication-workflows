@@ -11,7 +11,7 @@ resources:
 variables:
   # Container registry service connection established during pipeline creation
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
-  imageName: 'workflows-communication-dapr'
+  imageName: 'workflows-dapr'
   tag: '$(Build.BuildId)'
   docker_registry_service_connection_name: $(docker-registry-service-connection-name)
 
