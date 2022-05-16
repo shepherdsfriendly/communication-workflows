@@ -15,6 +15,6 @@ ln -s /lib/libc.musl-x86_64.so.1 /lib/ld-linux-x86-64.so.2
 
 RUN chmod +x app/Dapr.Workflows.dll
 
-COPY --from=build-env /app/workflows app/workflows 
+#COPY --from=build-env /app/workflows app/workflows 
 
 ENTRYPOINT []
