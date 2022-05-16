@@ -1,0 +1,31 @@
+# tye application configuration file
+# read all about it at https://github.com/dotnet/tye
+#
+# when you've given us a try, we'd love to know what you think:
+#    https://aka.ms/AA7q20u
+#
+name: dapr.workflows
+extensions:
+- name: dapr
+  log-level : debug
+  components-path: dapr/components/
+  config: dapr/configuration/config.yaml
+  protocol: grpc
+services:
+- name: communication-workflows
+  project: src/Dapr.Workflows/Dapr.Workflows.csproj
+  #image: daprio/workflows:0.2.2
+  #repository: https://github.com/shepherdsfriendly/communication-workflows.git
+  env:
+  - name: STORAGE_ACCOUNT_KEY
+    value: bb611R9zJjkgIOOuRAHONz7s9i8cF+LqzedhclX0c2gap8bhA0XHFSHqTXHtoFC7LJ1HGWkmZhmACt6sEDlGxg==
+  - name: STORAGE_ACCOUNT_NAME
+    value: sfcoredev
+  args: "--workflows-path C:/Users/domalley/source/repos/dapr-workflows/workflows"
+  #args: "dotnet app/Dapr.Workflows.dll --workflows-path /workflows"
+  #args: "--workflows-path /workflows"
+  bindings:
+  - containerPort: 50003
+  volumes:
+  - source: ./workflows
+    target: /workflows
