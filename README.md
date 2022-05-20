@@ -90,6 +90,12 @@ set STORAGE_ACCOUNT_KEY=<YOUR-STORAGE-ACCOUNT-KEY>
 set STORAGE_ACCOUNT_NAME=<YOUR-STORAGE-ACCOUNT-NAME>
 ```
 
+example storage emulator values
+```
+set STORAGE_ACCOUNT_KEY=devstoreaccount1
+set STORAGE_ACCOUNT_NAME=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==
+```
+
 ```
 cd src/Dapr.Workflows
 
