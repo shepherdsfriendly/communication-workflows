@@ -93,7 +93,7 @@ set STORAGE_ACCOUNT_NAME=<YOUR-STORAGE-ACCOUNT-NAME>
 ```
 cd src/Dapr.Workflows
 
-dapr run --app-id workflows --protocol grpc --port 3500 --app-port 50003 -- dotnet run --workflows-path ../../samples
+dapr run --app-id workflows --app-protocol grpc --dapr-http-port 3500 --app-port 50003 -- dotnet run --workflows-path ../../samples
 
 curl http://localhost:3500/v1.0/invoke/workflows/method/workflow1
 
